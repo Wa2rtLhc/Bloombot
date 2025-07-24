@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bloombot Login</title>
+  <link rel="stylesheet" href="CSS/style.css"> <!-- ✅ using your existing CSS -->
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <h2>🌿 Welcome to Bloombot</h2>
+      <p>Please log in to continue</p>
+
+      <form action="login.php" method="POST">
+        <label for="email">Email</label>
+        <input type="email" name="email" placeholder="Enter email" required>
+
+        <label for="password">Password</label>
+        <input type="password" name="password" placeholder="Enter password" required>
+
+        <button type="submit" class="btn">Login</button>
+      </form>
+
+      <div class="extra-links">
+        <p>🌱 Don't have an account? <a href="signup.html">Sign up here</a></p>
+        <p>👤 <a href="guest_view.php">Continue as Guest</a></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
