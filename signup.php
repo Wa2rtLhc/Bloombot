@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("sss", $username, $email, $hashedPassword);
         
         if ($stmt->execute()) {
-            echo "✅ Sign up successful! You can now <a href='login.php'>log in</a>.";
+            echo "✅ Sign up successful! You can now <a href='login.html'>log in</a>.";
         } else {
             echo "❌ Error: " . $stmt->error;
         }

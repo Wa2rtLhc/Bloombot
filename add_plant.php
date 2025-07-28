@@ -1,8 +1,7 @@
 <?php
-// Start session
 session_start();
 
-// Connect to MySQL database
+// Connect to MySQL
 $host = 'localhost';
 $username = 'root';
 $password = '';
@@ -14,6 +13,13 @@ $conn = new mysqli($host, $username, $password, $database);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
+// Ensure the user is logged in
+if (!isset($_SESSION['username'])) {
+    die("Unauthorized. Please log in.");
+}
+
+$gardener_username = $_SESSION['username']; // Get username from session
 
 // If the form is submitted
 if (isset($_POST['submit'])) {
@@ -28,18 +34,20 @@ if (isset($_POST['submit'])) {
     $status = $_POST['status'] ?? '';
     $notes = $_POST['notes'] ?? '';
 
-    // Validate required fields
-     if (
+    if (
         !empty($name) && !empty($type) && !empty($location) &&
         !empty($moisture_level) && !empty($temperature) &&
         !empty($light_requirement) && !empty($planted_date) &&
         !empty($status)
     ) {
-        $stmt = $conn->prepare("INSERT INTO plants (name, type, location, moisture_level, temperature, light_requirement, planted_date, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssssss", $name, $type, $location, $moisture_level, $temperature, $light_requirement, $planted_date, $status, $notes);
+        // Prepare SQL with gardener_username included
+        $stmt = $conn->prepare("INSERT INTO plants (name, type, location, moisture_level, temperature, light_requirement, planted_date, status, notes, gardener_username)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param("ssssssssss", $name, $type, $location, $moisture_level, $temperature, $light_requirement, $planted_date, $status, $notes, $gardener_username);
 
         if ($stmt->execute()) {
-            echo "<script>alert('Plant added successfully!'); window.location.href='gardener_dashboard .php';</script>";
+            echo "<script>alert('Plant added successfully!'); window.location.href='gardener_dashboard.php';</script>";
         } else {
             echo "Error adding plant: " . $stmt->error;
         }
@@ -58,7 +66,7 @@ $conn->close();
 <html>
 <head>
     <title>Add Plant</title>
-    <link rel="stylesheet" href="CSS/style.css"> <!-- Optional: link to your CSS -->
+    <link rel="stylesheet" href="CSS/style.css">
 </head>
 <body>
     <div class="container">
@@ -96,4 +104,3 @@ $conn->close();
     </div>
 </body>
 </html>
-

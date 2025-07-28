@@ -9,30 +9,43 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gardener') {
 }
 
 $user_id = $_SESSION['user_id'];
+$username = $_SESSION['username'];
 
 // Fetch latest sensor data for this gardener (if available)
-$sensor_query = mysqli_query($conn, "SELECT * FROM sensor_data WHERE id = $user_id ORDER BY timestamp DESC LIMIT 5");
-$sensor_data = mysqli_num_rows($sensor_query) > 0 ? mysqli_fetch_all($sensor_query, MYSQLI_ASSOC) : [];
+$sensor_query = mysqli_query($conn,
+    "SELECT sd.* FROM sensor_data sd
+     JOIN plants p ON sd.plant_id = p.id
+     WHERE p.gardener_username = '$username'
+     ORDER BY sd.timestamp DESC
+     LIMIT 5"
+);
 
-// Fetch gardener's threshold settings
-$threshold_query = mysqli_query($conn, "SELECT * FROM thresholds WHERE id = $user_id LIMIT 1");
-$threshold = mysqli_fetch_assoc($threshold_query);
+$sensor_data = [];
+if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
+    while ($row = mysqli_fetch_assoc($sensor_query)) {
+        $sensor_data[] = $row;
+    }
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Gardener Dashboard - Bloombot</title>
-    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="CSS/style.css?v=3">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <!-- Top Navigation -->
 <div class="topnav">
-    <a href="gardener_dashboard.php">Dashboard</a>
+    <a href="gardener_dashboard .php">Dashboard</a>
     <a href="about.html">About</a>
-    <a href="team.html">Team</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="profile.php">My Profile</a>
+    <a href="view_plants.php">My Plants</a>
+    <a href="gardener_reports.php">Reports</a>
+
     <div class="topnav-right">
         <a href="logout.php">Logout</a>
     </div>
@@ -48,10 +61,10 @@ $threshold = mysqli_fetch_assoc($threshold_query);
     <!-- Sidebar Menu -->
     <div class="sidebar">
         <h2>Menu</h2>
-        <a class="menu-button" href="add_plant.php">🌿 Add/View Plants</a><br>
-        <a class="menu-button" href="set_threshold.php">⚙ Set Thresholds</a><br>
-        <a class="menu-button" href="view_alerts.php">🔔 View Alerts</a><br>
-        <a class="menu-button" href="sensor_data.php">📊 Add Sensor Data</a><br>
+        <a class="menu-button" href="add_plant.php">🌿 Add Plants</a>
+        <a class="menu-button" href="set_threshold.php">⚙ Set Thresholds</a>
+        <a class="menu-button" href="view_alerts.php">🔔 View Alerts</a>
+        <a class="menu-button" href="sensor_data.php">📊 Add Sensor Data</a>
         <a class="menu-button" href="profile.php">👤 Profile</a>
     </div>
 
@@ -65,87 +78,160 @@ $threshold = mysqli_fetch_assoc($threshold_query);
         <?php if (!empty($sensor_data)): ?>
             <table border="1" width="100%" cellpadding="8" cellspacing="0">
                 <tr style="background-color: #2c7a5d; color: white;">
-                    <th>Timestamp</th>
+                    <th>Plant ID</th>
                     <th>Temperature (°C)</th>
                     <th>Moisture (%)</th>
                     <th>Light Level (%)</th>
+                    <th>Timestamp</th>
                 </tr>
                 <?php foreach ($sensor_data as $row): ?>
                     <tr>
-                        <td><?= htmlspecialchars($row['timestamp']) ?></td>
+                        <td><?= htmlspecialchars($row['plant_id']) ?></td>
                         <td><?= htmlspecialchars($row['temperature']) ?></td>
                         <td><?= htmlspecialchars($row['moisture']) ?></td>
                         <td><?= htmlspecialchars($row['light_level']) ?></td>
+                        <td><?= htmlspecialchars($row['timestamp']) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </table>
         <?php else: ?>
-            <p>No sensor data available yet.</p>
+            <p>No sensor data found for your plants.</p>
         <?php endif; ?>
+        <div class="chart-box">
+  <h3>Sensor Data Chart (Last 5 Readings)</h3>
+  <canvas id="sensorChart" width="100%" height="40"></canvas>
+</div>
 
-        <!-- Display Threshold Settings -->
-        <h3>Your Threshold Settings</h3>
-        <?php if ($threshold): ?>
-            <p>Moisture Min: <?= htmlspecialchars($threshold['moisture_min']) ?>%</p>
-            <p>Moisture Max: <?= htmlspecialchars($threshold['moisture_max']) ?>%</p>
-            <p>Temperature Min: <?= htmlspecialchars($threshold['temperature_min']) ?>°C</p>
-            <p>Temperature Max: <?= htmlspecialchars($threshold['temperature_max']) ?>°C</p>
-        <?php else: ?>
-            <p>No thresholds set yet. Please set them in the "Set Thresholds" section.</p>
-        <?php endif; ?>
-    <h2>Your Plants and Status</h2>
-    <?php
-    // Fetch all plants for this gardener
-    $plant_query = mysqli_query($conn, "SELECT * FROM plants WHERE id = $user_id");
-    if (mysqli_num_rows($plant_query) > 0):
-        while ($plant = mysqli_fetch_assoc($plant_query)):
+        <h2>Your Plants and Status</h2>
+        <?php
+        $plant_query = mysqli_query($conn, "SELECT * FROM plants WHERE gardener_username = '$username'");
+        if (mysqli_num_rows($plant_query) > 0):
+            while ($plant = mysqli_fetch_assoc($plant_query)):
 
-            $plant_id = $plant['id'];
-            $plant_name = $plant['name'];
+                $plant_id = $plant['id'];
+                $plant_name = $plant['name'];
 
-            // Get latest sensor data
-            $sensor_sql = "SELECT * FROM sensor_data WHERE plant_id = $plant_id ORDER BY timestamp DESC LIMIT 1";
-            $sensor_res = mysqli_query($conn, $sensor_sql);
-            $sensor = mysqli_fetch_assoc($sensor_res);
+                // Get latest sensor data for this plant
+                $sensor_sql = "SELECT * FROM sensor_data WHERE plant_id = $plant_id ORDER BY timestamp DESC LIMIT 1";
+                $sensor_res = mysqli_query($conn, $sensor_sql);
+                $sensor = mysqli_fetch_assoc($sensor_res);
 
-            // Get thresholds
-            $threshold_sql = "SELECT * FROM thresholds WHERE plant_id = $plant_id";
-            $threshold_res = mysqli_query($conn, $threshold_sql);
-            $threshold = mysqli_fetch_assoc($threshold_res);
+                // Get thresholds for this plant
+                $threshold_sql = "SELECT * FROM thresholds WHERE plant_id = $plant_id LIMIT 1";
+                $threshold_res = mysqli_query($conn, $threshold_sql);
+                $plant_threshold = mysqli_fetch_assoc($threshold_res);
 
-            // Determine status
-            $status = "Healthy";
-            if ($sensor) {
-                if ($threshold) {
-                    if ($sensor['moisture'] < $threshold['min_moisture']) {
-                        $status = "Needs Water";
-                    } elseif ($sensor['temperature'] < $threshold['min_temp']) {
-                        $status = "Too Cold";
-                    } elseif ($sensor['temperature'] > $threshold['max_temp']) {
-                        $status = "Too Hot";
-                    } elseif ($sensor['light_level'] < $threshold['min_light']) {
-                        $status = "Too Dark";
-                    } elseif ($sensor['light_level'] > $threshold['max_light']) {
-                        $status = "Too Bright";
+                // Determine plant status
+                $status = "Healthy";
+                if ($sensor) {
+                    if ($plant_threshold) {
+                        if ($sensor['moisture'] < $plant_threshold['moisture_min']) {
+                            $status = "Needs Water";
+                        } elseif ($sensor['temperature'] < $plant_threshold['temperature_min']) {
+                            $status = "Too Cold";
+                        } elseif ($sensor['temperature'] > $plant_threshold['temperature_max']) {
+                            $status = "Too Hot";
+                        } elseif ($sensor['light_level'] < $plant_threshold['light_min']) {
+                            $status = "Too Dark";
+                        } elseif ($sensor['light_level'] > $plant_threshold['light_max']) {
+                            $status = "Too Bright";
+                        }
+                    } else {
+                        $status = "No Thresholds Set";
                     }
                 } else {
-                    $status = "No Thresholds Set";
+                    $status = "No Sensor Data";
                 }
-            } else {
-                $status = "No Sensor Data";
-            }
-    ?>
-        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-            <h3><?= htmlspecialchars($plant_name) ?></h3>
-            <p><strong>Status:</strong> <?= $status ?></p>
-            <?php if ($sensor): ?>
-                <p><strong>Last Reading:</strong> Temp: <?= $sensor['temperature'] ?>°C, Moisture: <?= $sensor['moisture'] ?>%, Light: <?= $sensor['light_level'] ?>%</p>
-            <?php endif; ?>
-        </div>
-    <?php endwhile; else: ?>
-        <p>You have no plants added yet.</p>
-    <?php endif;?>
+        ?>
+            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <h3><?= htmlspecialchars($plant_name) ?></h3>
+                <p><strong>Status:</strong> <?= $status ?></p>
+                <?php if ($sensor): ?>
+                    <p><strong>Last Reading:</strong> Temp: <?= $sensor['temperature'] ?>°C, Moisture: <?= $sensor['moisture'] ?>%, Light: <?= $sensor['light_level'] ?>%</p>
+                <?php endif; ?>
+            </div>
+        <?php endwhile; else: ?>
+            <p>You have no plants added yet.</p>
+        <?php endif;?>
+    </div>
+    
 </div>
+
+<?php
+// Prepare chart data arrays
+$timestamps = [];
+$temperatures = [];
+$moistures = [];
+$light_levels = [];
+
+foreach ($sensor_data as $data) {
+    $timestamps[] = $data['timestamp'];
+    $temperatures[] = $data['temperature'];
+    $moistures[] = $data['moisture'];
+    $light_levels[] = $data['light_level'];
+}
+?>
+
+<script>
+const ctx = document.getElementById('sensorChart').getContext('2d');
+const sensorChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: <?= json_encode($timestamps) ?>,
+        datasets: [
+            {
+                label: 'Temperature (°C)',
+                data: <?= json_encode($temperatures) ?>,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Moisture (%)',
+                data: <?= json_encode($moistures) ?>,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Light Level (%)',
+                data: <?= json_encode($light_levels) ?>,
+                borderColor: 'rgba(255, 206, 86, 1)',
+                fill: false,
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Latest Sensor Readings'
+            },
+            legend: {
+                position: 'top'
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Timestamp'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Value'
+                }
+            }
+        }
+   }
+});
+</script>
+
+
 
 </body>
 </html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact Us - Bloombot</title>
+  <link rel="stylesheet" href="CSS/style.css"> <!-- Link your CSS -->
+  <style>
+    .contact-container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: #ffffff;
+      padding: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    .contact-container h2 {
+      text-align: center;
+      color: #2c7a5d;
+    }
+
+    .contact-container textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+<div class="topnav">
+    <a href="gardener_dashboard .php">Dashboard</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact Us</a>
+    <div class="topnav-right">
+        <a href="logout.php">Logout</a>
+    </div>
+  <div class="header">
+    <h1>Bloombot</h1>
+  </div>
+
+  <div class="contact-container">
+    <h2>We'd love to hear from you</h2>
+    <form action="send_message.php" method="POST">
+      <label for="name">Your Name:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Your Email:</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="message">Message:</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2025 Bloombot. All rights reserved.</p>
+  </div>
+</body>
+</html>

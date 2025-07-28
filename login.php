@@ -18,7 +18,6 @@ $sql = "SELECT * FROM users WHERE email = ?";
 $stmt = $conn->prepare($sql);
 if (!$stmt)
     die("❌ Prepare failed: " . $conn->error);
-}
 
 $stmt->bind_param("s", $email);
 $stmt->execute();

@@ -3,6 +3,8 @@
 ------------------------- */
 body {
     margin: 0;
+    padding: 0;
+    height: 100%;
     font-family: Arial, Helvetica, sans-serif;
     background-image: url('https://tse3.mm.bing.net/th/id/OIP.BfIkC8v4gTliPHKb4FwHBwHaEJ?r=0&rs=1&pid=ImgDetMain&o=7&rm=3');
     background-size: cover;
@@ -14,25 +16,34 @@ body {
 }
 
 .header {
-    padding: 20px;
+    padding: 10px;
     text-align: center;
     background: hsl(150, 76%, 27%);
     color: white;
+    margin: 0;
 }
 .main {
     display: flex;
     min-height: 80vh; /* ensures the footer stays lower */
-    padding: 20px;
+    padding: 0px;
 }
 
 .sidebar {
-    width: 25%;
+     position: sticky;
+    top: 0;
+    height: 100vh; /* Full height sidebar */
+    align-self: flex-start;
+    width: 15%;
     background-color: #f1f1f1;
     padding: 20px;
+    display: flex;
+    flex-direction: column; /* Makes children (menu buttons) stack vertically */
+    gap: 12px; /* Adds spacing between buttons */
+
 }
 
 .content {
-    width: 75%;
+    width: 85%;
     background-color: #ffffff;
     padding: 20px;
 }
@@ -64,14 +75,18 @@ body {
 
 .topnav-right {
     float: right;
+    
 }
 img {
-    float:left;
-    margin-right: 20px;
-    width: 50%;
+    width: 100%;
     height: auto;
+    display: block;
+    float: none; /* added */
+    margin: 0 auto; /* center if needed */
+
 }
 .menu-button {
+    margin-bottom: 10px;
     background-color: #4CAF50; /* green Bloombot theme */
     color: white;
     padding: 10px 20px;
@@ -164,5 +179,37 @@ button:hover {
 .link:hover {
     text-decoration: underline;
 }
+.edit-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
 
+.edit-button:hover {
+    background-color: #45a049;
+}
+.chart-box {
+  margin-top: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+}
+.dashboard-cards {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
 
+        .card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            flex: 1;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }

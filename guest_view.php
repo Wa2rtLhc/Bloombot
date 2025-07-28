@@ -21,7 +21,7 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : "";
 <head>
   <meta charset="UTF-8">
   <title>Bloombot Guest View</title>
-  <link rel="stylesheet" href="css/styles.css"> <!-- Apply your custom CSS -->
+  <link rel="stylesheet" href="CSS/styles.css"> <!-- Apply your custom CSS -->
 </head>
 <body>
 
