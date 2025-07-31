@@ -1,6 +1,7 @@
 <?php
 include 'weather_api.php';
-$weather = getWeather("Nairobi"); 
+// Automatically get user's city based on IP
+$weather = getWeather();
 session_start();
 include('db_connect.php');
 
@@ -69,21 +70,19 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
         <a class="menu-button" href="sensor_data.php">📊 Add Sensor Data</a>
         <a class="menu-button" href="profile.php">👤 Profile</a>
     </div>
-
     <!-- Content Area -->
     <div class="content">
-        <h2>Dashboard Overview</h2>
-        <p>Here you can manage your plants, set thresholds, and view alerts.</p>
         <?php if ($weather): ?>
     <div class="weather-widget">
         <h3>🌤 Current Weather in Nairobi</h3>
-        <p>Temperature: <?= $weather['temperature'] ?>°C</p>
-        <p>Humidity: <?= $weather['humidity'] ?>%</p>
-        <p>Description: <?= ucfirst($weather['description']) ?></p>
-        <p>Wind Speed: <?= $weather['wind_speed'] ?> m/s</p>
-    </div>
-<?php else: ?>
-    <p>⚠ Unable to fetch weather data.</p>
+        <p>Weather in <?= ucfirst($weather['city']) ?>: <?= $weather['temperature'] ?>°C, <?= ucfirst($weather['description']) ?></p>
+
+    <?php if ($weather['will_rain']): ?>
+        <p style="color: #2b6cb0; font-weight: bold;">☔ Rain is expected today – you may not need to water your plants.</p>
+    <?php else: ?>
+        <p style="color: #38a169; font-weight: bold;">🌤 No rain expected – consider watering your plants.</p>
+    <?php endif; ?>
+</div>
 <?php endif; ?>
 
         <!-- Display Latest Sensor Data -->
@@ -167,6 +166,7 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
             <p>You have no plants added yet.</p>
         <?php endif;?>
     </div>
+
     
 </div>
 
@@ -243,7 +243,20 @@ const sensorChart = new Chart(ctx, {
    }
 });
 </script>
+<script>
+function simulateSensorData() {
+    fetch('simulate_sensor_data.php')
+        .then(response => response.json())
+        .then(data => console.log("✅ " + data.message))
+        .catch(error => console.error("❌ Error simulating sensor data:", error));
+}
 
+// Run once immediately
+simulateSensorData();
+
+// Then every 5 minutes (5 * 60 * 1000 ms)
+setInterval(simulateSensorData, 5 * 60 * 1000);
+</script>
 
 </body>
 </html>
