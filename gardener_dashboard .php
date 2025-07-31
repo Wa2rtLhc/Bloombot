@@ -78,7 +78,7 @@ while ($row = mysqli_fetch_assoc($recentAlertsResult)) {
         <a class="menu-button" href="add_plant.php">🌿 Add Plants</a>
         <a class="menu-button" href="set_threshold.php">⚙ Set Thresholds</a>
         <a class="menu-button" href="view_alerts.php">🔔 View Alerts</a>
-        <a class="menu-button" href="sensor_data.php">📊 Add Sensor Data</a>
+        <a class="menu-button" href="sensor_data.php">📊 View Sensor Data</a>
         <a class="menu-button" href="profile.php">👤 Profile</a>
     </div>
     <!-- Content Area -->

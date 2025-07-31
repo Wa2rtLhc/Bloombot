@@ -1,92 +1,133 @@
 <?php
 session_start();
-include('db_connect.php');
+$mysqli = new mysqli("localhost", "root", "", "bloombot.");
 
-// Ensure user is logged in and is a gardener
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gardener') {
-    header("Location: login.php");
-    exit();
+if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
+}
+
+// Ensure gardener is logged in
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'gardener') {
+    die("Access denied.");
 }
 
 $username = $_SESSION['username'];
+$start_date = $_GET['start_date'] ?? '';
+$end_date = $_GET['end_date'] ?? '';
+$download = isset($_GET['download']) && $_GET['download'] === '1';
 
-// Fetch user's plants
-$plant_query = mysqli_query($conn, "SELECT id, name FROM plants WHERE gardener_username = '$username'");
-$plants = mysqli_fetch_all($plant_query, MYSQLI_ASSOC);
+$query = "
+    SELECT sd.id, sd.plant_id, sd.temperature, sd.moisture, sd.light_level, sd.timestamp
+    FROM sensor_data sd
+    JOIN plants p ON sd.plant_id = p.id
+    WHERE p.gardener_username = ?
+";
 
-// Handle form submission
-$message = "";
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $plant_id = $_POST['plant_id'];
-    $temperature = $_POST['temperature'];
-    $moisture = $_POST['moisture'];
-    $light_level = $_POST['light_level'];
+$params = [$username];
+$types = "s";
 
-    if ($plant_id && $temperature !== '' && $moisture !== '' && $light_level !== '') {
-        $stmt = $conn->prepare("INSERT INTO sensor_data (plant_id, temperature, moisture, light_level, timestamp) VALUES (?, ?, ?, ?, NOW())");
-        $stmt->bind_param("iiii", $plant_id, $temperature, $moisture, $light_level);
+if (!empty($start_date) && !empty($end_date)) {
+    $query .= " AND sd.timestamp BETWEEN ? AND ?";
+    $types .= "ss";
+    $params[] = $start_date . " 00:00:00";
+    $params[] = $end_date . " 23:59:59";
+}
 
-        if ($stmt->execute()) {
-            $message = "Sensor data added successfully!";
-        } else {
-            $message = "Error adding data.";
-        }
-    } else {
-        $message = "Please fill in all fields.";
+$query .= " ORDER BY sd.timestamp DESC";
+
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($download) {
+    // Force download as CSV
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="sensor_report.csv"');
+
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['ID', 'Plant ID', 'Temperature', 'Moisture', 'Light Level', 'Timestamp']);
+
+    while ($row = $result->fetch_assoc()) {
+        fputcsv($output, $row);
     }
+
+    fclose($output);
+    exit;
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Manual Sensor Input - Bloombot</title>
-    <link rel="stylesheet" href="CSS/style.css?v=4">
+    <title>Gardener Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .btn {
+            text-decoration: none;
+            background-color:rgb(40, 243, 33);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #1976D2;}
+        form {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #e1f5c4;
+        }
+    </style>
 </head>
 <body>
+    <a href="gardener_dashboard .php" class="btn">← Back to Dashboard</a>
+    <h2>Sensor Data Report</h2>
 
-<div class="topnav">
-    <a href="gardener_dashboard .php">Dashboard</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a href="profile.php">My Profile</a>
-    <a href="view_plants.php">My Plants</a>
-    <div class="topnav-right">
-        <a href="logout.php">Logout</a>
-    </div>
-</div>
+    <form method="GET">
+        <label>Start Date: <input type="date" name="start_date" value="<?= htmlspecialchars($start_date) ?>"></label>
+        <label>End Date: <input type="date" name="end_date" value="<?= htmlspecialchars($end_date) ?>"></label>
+        <button type="submit">Filter</button>
+        <button type="submit" name="download" value="1">Download CSV</button>
+    </form>
 
-<div class="header">
-    <h1>Manual Sensor Data Entry</h1>
-</div>
-
-<div class="main">
-    <div class="content">
-        <?php if (!empty($message)) echo "<p><strong>$message</strong></p>"; ?>
-
-        <form action="" method="POST">
-            <label for="plant_id">Select Plant:</label><br>
-            <select name="plant_id" required>
-                <option value="">-- Select Plant --</option>
-                <?php foreach ($plants as $plant): ?>
-                    <option value="<?= $plant['id'] ?>"><?= htmlspecialchars($plant['name']) ?> (ID: <?= $plant['id'] ?>)</option>
-                <?php endforeach; ?>
-            </select><br><br>
-
-            <label for="temperature">Temperature (°C):</label><br>
-            <input type="number" name="temperature" step="1" required><br><br>
-
-            <label for="moisture">Moisture (%):</label><br>
-            <input type="number" name="moisture" step="1" required><br><br>
-
-            <label for="light_level">Light Level (%):</label><br>
-            <input type="number" name="light_level" step="1" required><br><br>
-
-            <button type="submit">Add Sensor Data</button>
-        </form>
-    </div>
-</div>
-
+    <?php if ($result->num_rows > 0): ?>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Plant ID</th>
+                <th>Temperature (°C)</th>
+                <th>Moisture (%)</th>
+                <th>Light Level (lux)</th>
+                <th>Timestamp</th>
+            </tr>
+            <?php while ($row = $result->fetch_assoc()): ?>
+                <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td><?= $row['plant_id'] ?></td>
+                    <td><?= $row['temperature'] ?></td>
+                    <td><?= $row['moisture'] ?></td>
+                    <td><?= $row['light_level'] ?></td>
+                    <td><?= $row['timestamp'] ?></td>
+                </tr>
+            <?php endwhile; ?>
+        </table>
+    <?php else: ?>
+        <p>No sensor data for selected period.</p>
+    <?php endif; ?>
 </body>
 </html>
