@@ -232,6 +232,5 @@ const sensorChart = new Chart(ctx, {
 </script>
 
 
-
 </body>
 </html>
