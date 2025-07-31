@@ -1,113 +1,93 @@
 <?php
-session_start();
+$mysqli = new mysqli("localhost", "root", "", "bloombot.");
 
-// Check if user is logged in and is a gardener
-if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'gardener') {
-    header("Location: login.html");
-    exit;
+if ($mysqli->connect_error) {
+    die("Database connection failed: " . $mysqli->connect_error);
 }
 
-// Connect to DB
-$conn = new mysqli("localhost", "root", "", "bloombot.");
-if ($conn->connect_error) {
-    die("Database connection failed: " . $conn->connect_error);
-}
+$query = "SELECT notifications.*, plants.name AS plant_name
+          FROM notifications
+          LEFT JOIN plants ON notifications.plant_id = plants.id
+          ORDER BY notifications.timestamp DESC";
 
-$username = $_SESSION['username'];
-$alerts = [];
-
-// Prepare query safely
-$query = "SELECT message, seen, plants.name AS plant_name 
-          FROM notifications  
-          JOIN plants ON notifications.plant_id = plants.id 
-          WHERE plants.gardener_username = ? 
-          ORDER BY seen DESC";
-
-$stmt = $conn->prepare($query);
-if ($stmt) {
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $alerts[] = $row;
-    }
-    $stmt->close();
-} else {
-    die("Failed to prepare SQL statement.");
-}
-
-$conn->close();
+$result = $mysqli->query($query);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Plant Alerts</title>
-    <link rel="stylesheet" href="CSS/style.css">
+    <title>All Alerts - Bloombot</title>
     <style>
         body {
-            background-image: url('bg.jpg');
-            background-size: cover;
             font-family: Arial, sans-serif;
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        .container {
-            background-color: rgba(0,0,0,0.7);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 800px;
-            margin: auto;
-        }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            color: white;
-        }
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
-        }
-        a {
-            color: #ffeb3b;
-            text-decoration: none;
-            display: block;
-            margin-top: 20px;
+            margin: 40px;
+            background-color: #f9f9f9;
         }
         h2 {
             margin-bottom: 20px;
         }
+        .btn {
+            text-decoration: none;
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #1976D2;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Plant Alerts</h2>
-    <?php if (empty($alerts)): ?>
-        <p>No alerts found for your plants.</p>
-    <?php else: ?>
-        <table>
-            <thead>
+
+<a href="gardener_dashboard .php" class="btn">← Back to Dashboard</a>
+<a href="download_alerts.php" class="btn" style="background-color: #4CAF50;">⬇ Download CSV</a>
+
+<h2>All Alerts</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Plant</th>
+            <th>Message</th>
+            <th>Timestamp</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if ($result && $result->num_rows > 0): ?>
+            <?php while ($row = $result->fetch_assoc()): ?>
                 <tr>
-                    <th>Plant</th>
-                    <th>Alert Message</th>
-                    <th>Time</th>
+                    <td><?= htmlspecialchars($row['plant_name'] ?? "Plant #" . $row['plant_id']) ?></td>
+                    <td><?= htmlspecialchars($row['message']) ?></td>
+                    <td><?= htmlspecialchars($row['timestamp']) ?></td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($alerts as $alert): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($alert['plant_name']) ?></td>
-                        <td><?= htmlspecialchars($alert['message']) ?></td>
-                        <td><?= htmlspecialchars($alert['timestamp']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php endif; ?>
-    <a href="gardener_dashboard .php">← Back to Dashboard</a>
-</div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr><td colspan="3">No alerts found.</td></tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
 </body>
 </html>

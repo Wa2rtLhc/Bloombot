@@ -29,12 +29,23 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
         $sensor_data[] = $row;
     }
 }
+// Fetch alerts from the last 5 minutes
+$recentAlertsQuery = "SELECT * FROM notifications 
+                      WHERE timestamp >= NOW() - INTERVAL 5 MINUTE 
+                      ORDER BY timestamp DESC";
+$recentAlertsResult = mysqli_query($conn, $recentAlertsQuery);
+
+$recentAlerts = [];
+while ($row = mysqli_fetch_assoc($recentAlertsResult)) {
+    $recentAlerts[] = $row['message'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Gardener Dashboard - Bloombot</title>
+    <meta http-equiv="refresh" content="300">
     <link rel="stylesheet" href="CSS/style.css?v=3">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -166,7 +177,9 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
             <p>You have no plants added yet.</p>
         <?php endif;?>
     </div>
-
+<div id="popup-alert" style="display:none; position:fixed; bottom:20px; right:20px; background:#ffdddd; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:9999;">
+    <span id="popup-message"></span>
+</div>
     
 </div>
 
@@ -242,6 +255,29 @@ const sensorChart = new Chart(ctx, {
         }
    }
 });
+</script>
+<script>
+    const alerts = <?php echo json_encode($recentAlerts); ?>;
+    let alertIndex = 0;
+
+    function showAlert() {
+        if (alertIndex < alerts.length) {
+            const popup = document.getElementById("popup-alert");
+            const message = document.getElementById("popup-message");
+            message.innerText = alerts[alertIndex];
+            popup.style.display = "block";
+
+            setTimeout(() => {
+                popup.style.display = "none";
+                alertIndex++;
+                showAlert();
+            }, 5000); // Hide after 5 seconds
+        }
+    }
+
+    if (alerts.length > 0) {
+        showAlert();
+}
 </script>
 <script>
 function simulateSensorData() {
