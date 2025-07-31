@@ -76,7 +76,7 @@ if ($download) {
             display: inline-block;
         }
         .btn:hover {
-            background-color: #1976D2;}
+            background-color:rgb(25, 210, 34);}
         form {
             margin-bottom: 20px;
         }
