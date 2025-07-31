@@ -1,4 +1,6 @@
 <?php
+include 'weather_api.php';
+$weather = getWeather("Nairobi"); 
 session_start();
 include('db_connect.php');
 
@@ -72,6 +74,17 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
     <div class="content">
         <h2>Dashboard Overview</h2>
         <p>Here you can manage your plants, set thresholds, and view alerts.</p>
+        <?php if ($weather): ?>
+    <div class="weather-widget">
+        <h3>🌤 Current Weather in Nairobi</h3>
+        <p>Temperature: <?= $weather['temperature'] ?>°C</p>
+        <p>Humidity: <?= $weather['humidity'] ?>%</p>
+        <p>Description: <?= ucfirst($weather['description']) ?></p>
+        <p>Wind Speed: <?= $weather['wind_speed'] ?> m/s</p>
+    </div>
+<?php else: ?>
+    <p>⚠ Unable to fetch weather data.</p>
+<?php endif; ?>
 
         <!-- Display Latest Sensor Data -->
         <h3>Recent Sensor Readings</h3>
