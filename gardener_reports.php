@@ -6,52 +6,69 @@ if ($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
 }
 
-// Ensure gardener is logged in
-if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'gardener') {
-    die("Access denied.");
-}
+$gardener_username = $_SESSION['username'] ?? '';
 
-$username = $_SESSION['username'];
-$start_date = $_GET['start_date'] ?? '';
-$end_date = $_GET['end_date'] ?? '';
-$download = isset($_GET['download']) && $_GET['download'] === '1';
+// Handle filter form
+$from = $_GET['from'] ?? '';
+$to = $_GET['to'] ?? '';
 
-$query = "
-    SELECT sd.id, sd.plant_id, sd.temperature, sd.moisture, sd.light_level, sd.timestamp
+// Prepare base SQL
+$sql = "
+    SELECT 
+        sd.*, 
+        p.name AS plant_name, 
+        t.temperature_min, t.temperature_max,
+        t.moisture_min, t.moisture_max,
+        t.light_min, t.light_max,
+        n.message AS alert_message, 
+        n.timestamp AS alert_time
     FROM sensor_data sd
     JOIN plants p ON sd.plant_id = p.id
+    LEFT JOIN thresholds t ON sd.plant_id = t.plant_id
+    LEFT JOIN notifications n ON sd.plant_id = n.plant_id 
+        AND DATE(n.timestamp) = DATE(sd.timestamp)
     WHERE p.gardener_username = ?
 ";
 
-$params = [$username];
-$types = "s";
-
-if (!empty($start_date) && !empty($end_date)) {
-    $query .= " AND sd.timestamp BETWEEN ? AND ?";
-    $types .= "ss";
-    $params[] = $start_date . " 00:00:00";
-    $params[] = $end_date . " 23:59:59";
+// Apply date filters
+if ($from && $to) {
+    $sql .= " AND DATE(sd.timestamp) BETWEEN ? AND ?";
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("sss", $gardener_username, $from, $to);
+} else {
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("s", $gardener_username);
 }
 
-$query .= " ORDER BY sd.timestamp DESC";
-
-$stmt = $mysqli->prepare($query);
-$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if ($download) {
-    // Force download as CSV
+$rows = [];
+while ($row = $result->fetch_assoc()) {
+    $rows[] = $row;
+}
+
+// Handle download
+if (isset($_GET['download']) && count($rows) > 0) {
     header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="sensor_report.csv"');
-
-    $output = fopen('php://output', 'w');
-    fputcsv($output, ['ID', 'Plant ID', 'Temperature', 'Moisture', 'Light Level', 'Timestamp']);
-
-    while ($row = $result->fetch_assoc()) {
-        fputcsv($output, $row);
+    header('Content-Disposition: attachment; filename="gardener_report.csv"');
+    $output = fopen("php://output", "w");
+    fputcsv($output, [
+        "Timestamp", "Plant Name", 
+        "Temperature", "Moisture", "Light Level",
+        "Temperature Range", "Moisture Range", "Light Range",
+        "Alert Message", "Alert Time"
+    ]);
+    foreach ($rows as $r) {
+        fputcsv($output, [
+            $r['timestamp'], $r['plant_name'], 
+            $r['temperature'], $r['moisture'], $r['light_level'],
+            "{$r['temperature_min']} - {$r['temperature_max']}",
+            "{$r['moisture_min']} - {$r['moisture_max']}",
+            "{$r['light_min']} - {$r['light_max']}",
+            $r['alert_message'] ?? '', $r['alert_time'] ?? ''
+        ]);
     }
-
     fclose($output);
     exit;
 }
@@ -60,15 +77,20 @@ if ($download) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gardener Reports</title>
+    <title>Gardener Report</title>
+    <link rel="stylesheet" href="CSS/style.css">
     <style>
-        body {
+    body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 40px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            margin-bottom: 20px;
         }
         .btn {
             text-decoration: none;
-            background-color: #2196F3;
+            background-color:rgb(33, 243, 128);
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
@@ -76,58 +98,76 @@ if ($download) {
             display: inline-block;
         }
         .btn:hover {
-            background-color: #1976D2;}
-        form {
-            margin-bottom: 20px;
+            background-color:rgb(25, 210, 118);
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
         }
         th, td {
-            border: 1px solid #aaa;
-            padding: 8px;
-            text-align: center;
+            padding: 12px;
+            border-bottom: 1px solid #ccc;
+            text-align: left;
         }
         th {
-            background-color: #e1f5c4;
+            background-color: #4CAF50;
+            color: white;
         }
+        tr:hover {
+                background-color: #f1f1f1;}
+        
+        
     </style>
 </head>
 <body>
-    <a href="gardener_dashboard .php" class="btn">← Back to Dashboard</a>
-    <h2>Sensor Data Report</h2>
+<a href="gardener_dashboard .php" class="btn">← Back to Dashboard</a>
+<h2>Gardener Report</h2>
 
-    <form method="GET">
-        <label>Start Date: <input type="date" name="start_date" value="<?= htmlspecialchars($start_date) ?>"></label>
-        <label>End Date: <input type="date" name="end_date" value="<?= htmlspecialchars($end_date) ?>"></label>
-        <button type="submit">Filter</button>
-        <button type="submit" name="download" value="1">Download CSV</button>
-    </form>
+<form method="get">
+    <label>From: <input type="date" name="from" value="<?= htmlspecialchars($from) ?>"></label>
+    <label>To: <input type="date" name="to" value="<?= htmlspecialchars($to) ?>"></label>
+    <button type="submit" class="btn">Filter</button>
+    <a href="?download=1&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>" class="btn">Download CSV</a>
+</form>
 
-    <?php if ($result->num_rows > 0): ?>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Plant ID</th>
-                <th>Temperature (°C)</th>
-                <th>Moisture (%)</th>
-                <th>Light Level (lux)</th>
-                <th>Timestamp</th>
-            </tr>
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <tr>
-                    <td><?= $row['id'] ?></td>
-                    <td><?= $row['plant_id'] ?></td>
-                    <td><?= $row['temperature'] ?></td>
-                    <td><?= $row['moisture'] ?></td>
-                    <td><?= $row['light_level'] ?></td>
-                    <td><?= $row['timestamp'] ?></td>
-                </tr>
-            <?php endwhile; ?>
-        </table>
-    <?php else: ?>
-        <p>No sensor data for selected period.</p>
-    <?php endif; ?>
+<?php if (count($rows) === 0): ?>
+    <p>No data found for the selected period.</p>
+<?php else: ?>
+<table>
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Plant</th>
+            <th>Temperature (°C)</th>
+            <th>Moisture (%)</th>
+            <th>Light (lux)</th>
+            <th>Temp Range</th>
+            <th>Moisture Range</th>
+            <th>Light Range</th>
+            <th>Alert</th>
+            <th>Alert Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($rows as $r): ?>
+        <tr>
+            <td><?= htmlspecialchars($r['timestamp']) ?></td>
+            <td><?= htmlspecialchars($r['plant_name']) ?></td>
+            <td><?= htmlspecialchars($r['temperature']) ?></td>
+            <td><?= htmlspecialchars($r['moisture']) ?></td>
+            <td><?= htmlspecialchars($r['light_level']) ?></td>
+            <td><?= "{$r['temperature_min']} - {$r['temperature_max']}" ?></td>
+            <td><?= "{$r['moisture_min']} - {$r['moisture_max']}" ?></td>
+            <td><?= "{$r['light_min']} - {$r['light_max']}" ?></td>
+            <td><?= htmlspecialchars($r['alert_message'] ?? '') ?></td>
+            <td><?= htmlspecialchars($r['alert_time'] ?? '') ?></td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<?php endif; ?>
+
 </body>
 </html>

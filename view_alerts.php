@@ -5,12 +5,48 @@ if ($mysqli->connect_error) {
     die("Database connection failed: " . $mysqli->connect_error);
 }
 
+// Capture filter inputs
+$plantFilter = $_GET['plant'] ?? '';
+$fromDate = $_GET['from_date'] ?? '';
+$toDate = $_GET['to_date'] ?? '';
+
+// Build query dynamically with filters
 $query = "SELECT notifications.*, plants.name AS plant_name
           FROM notifications
           LEFT JOIN plants ON notifications.plant_id = plants.id
-          ORDER BY notifications.timestamp DESC";
+          WHERE 1=1";
 
-$result = $mysqli->query($query);
+$params = [];
+$types = "";
+
+// Add filters
+if (!empty($plantFilter)) {
+    $query .= " AND plants.name LIKE ?";
+    $params[] = "%$plantFilter%";
+    $types .= "s";
+}
+
+if (!empty($fromDate)) {
+    $query .= " AND notifications.timestamp >= ?";
+    $params[] = $fromDate . " 00:00:00";
+    $types .= "s";
+}
+
+if (!empty($toDate)) {
+    $query .= " AND notifications.timestamp <= ?";
+    $params[] = $toDate . " 23:59:59";
+    $types .= "s";
+}
+
+$query .= " ORDER BY notifications.timestamp DESC";
+
+// Prepare and bind
+$stmt = $mysqli->prepare($query);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -25,11 +61,11 @@ $result = $mysqli->query($query);
             background-color: #f9f9f9;
         }
         h2 {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .btn {
             text-decoration: none;
-            background-color: #2196F3;
+            background-color: rgb(33, 243, 128);
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
@@ -37,12 +73,18 @@ $result = $mysqli->query($query);
             display: inline-block;
         }
         .btn:hover {
-            background-color: #1976D2;
+            background-color: rgb(25, 210, 118);
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 7px;
+            margin-right: 10px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
             background-color: white;
         }
         th, td {
@@ -65,6 +107,14 @@ $result = $mysqli->query($query);
 <a href="download_alerts.php" class="btn" style="background-color: #4CAF50;">⬇ Download CSV</a>
 
 <h2>All Alerts</h2>
+
+<form method="GET" action="view_alerts.php">
+    <input type="text" name="plant" placeholder="Search plant..." value="<?= htmlspecialchars($plantFilter) ?>">
+    <input type="date" name="from_date" value="<?= htmlspecialchars($fromDate) ?>">
+    <input type="date" name="to_date" value="<?= htmlspecialchars($toDate) ?>">
+    <button type="submit">Filter</button>
+    <a href="view_alerts.php" class="btn" style="background-color:#ccc; color:black;">Reset</a>
+</form>
 
 <table>
     <thead>
