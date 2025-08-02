@@ -47,7 +47,7 @@ if (isset($_POST['submit'])) {
         $stmt->bind_param("ssssssssss", $name, $type, $location, $moisture_level, $temperature, $light_requirement, $planted_date, $status, $notes, $gardener_username);
 
         if ($stmt->execute()) {
-            echo "<script>alert('Plant added successfully!'); window.location.href='gardener_dashboard.php';</script>";
+            echo "<script>alert('Plant added successfully!'); window.location.href='gardener_dashboard .php';</script>";
         } else {
             echo "Error adding plant: " . $stmt->error;
         }

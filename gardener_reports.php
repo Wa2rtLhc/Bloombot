@@ -78,7 +78,6 @@ if (isset($_GET['download']) && count($rows) > 0) {
 <html>
 <head>
     <title>Gardener Report</title>
-    <link rel="stylesheet" href="CSS/style.css">
     <style>
     body {
             font-family: Arial, sans-serif;

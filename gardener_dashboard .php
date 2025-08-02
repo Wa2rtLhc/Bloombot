@@ -28,22 +28,31 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
         $sensor_data[] = $row;
     }
 }
+$recentAlertsQuery = "
+    SELECT n.message, n.timestamp, p.name AS plant_name 
+    FROM notifications n
+    JOIN plants p ON n.plant_id = p.id
+    WHERE p.gardener_username = ?
+    AND n.timestamp >= NOW() - INTERVAL 5 MINUTE 
+    ORDER BY n.timestamp DESC
+";
 
-$recentAlertsQuery = "SELECT * FROM notifications 
-                      WHERE timestamp >= NOW() - INTERVAL 5 MINUTE 
-                      ORDER BY timestamp DESC";
-$recentAlertsResult = mysqli_query($conn, $recentAlertsQuery);
+$stmt = $conn->prepare($recentAlertsQuery);
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $recentAlerts = [];
-while ($row = mysqli_fetch_assoc($recentAlertsResult)) {
-    $recentAlerts[] = $row['message'];
+while ($row = $result->fetch_assoc()) {
+    $recentAlerts[] = $row['plant_name'] . ": " . $row['message'];
 }
-?><!DOCTYPE html><html lang="en">
+?>
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Gardener Dashboard - Bloombot</title>
     <meta http-equiv="refresh" content="300">
-    <link rel="stylesheet" href="CSS/style.css?v=3">
+    <link rel="stylesheet" href="CSS/style.css?v=4">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body><div class="topnav">
@@ -156,7 +165,7 @@ while ($row = mysqli_fetch_assoc($recentAlertsResult)) {
     <?php endif; ?>
 </div>
 
-<div id="popup-alert" style="display:none; position:fixed; bottom:20px; right:20px; background:#ffdddd; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:9999;">
+<div id="popup-alert"style="display:none; position:fixed; bottom:20px; right:20px;background-color:red;  padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:9999;">
     <span id="popup-message"></span>
 </div>
 
