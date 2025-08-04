@@ -52,7 +52,7 @@ while ($row = $result->fetch_assoc()) {
     <meta charset="UTF-8">
     <title>Gardener Dashboard - Bloombot</title>
     <meta http-equiv="refresh" content="300">
-    <link rel="stylesheet" href="CSS/style.css?v=4">
+    <link rel="stylesheet" href="CSS/style.css?v=6">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body><div class="topnav">
@@ -68,7 +68,6 @@ while ($row = $result->fetch_assoc()) {
 </div><div class="header">
     <h1>Welcome, Gardener!</h1>
 </div><div class="main">
-    <button id="menu-toggle" class="menu-toggle">☰ Menu</button>
     <div class="sidebar">
         <h2>Menu</h2>
         <a class="menu-button" href="add_plant.php">🌿 Add Plants</a>
@@ -270,12 +269,6 @@ function simulateSensorData() {
 }
 simulateSensorData();
 setInterval(simulateSensorData, 5 * 60 * 1000);
-</script>
-<script>
-document.getElementById('menu-toggle').addEventListener('click', function () {
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('hidden');
-});
 </script>
 </body>
 </html>
