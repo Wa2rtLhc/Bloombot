@@ -28,6 +28,7 @@ if ($sensor_query && mysqli_num_rows($sensor_query) > 0) {
         $sensor_data[] = $row;
     }
 }
+
 $recentAlertsQuery = "
     SELECT n.message, n.timestamp, p.name AS plant_name 
     FROM notifications n
