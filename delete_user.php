@@ -5,7 +5,7 @@ session_start();
 $host = 'localhost';
 $username = 'root';
 $password = '';
-$database = 'bloombot';
+$database = 'bloombot.';
 
 $conn = new mysqli($host, $username, $password, $database);
 if ($conn->connect_error) {

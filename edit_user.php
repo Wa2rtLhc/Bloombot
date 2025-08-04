@@ -5,7 +5,7 @@ session_start();
 $host = 'localhost';
 $username = 'root';
 $password = '';
-$database = 'bloombot';
+$database = 'bloombot.';
 
 $conn = new mysqli($host, $username, $password, $database);
 if ($conn->connect_error) {
@@ -54,6 +54,7 @@ $conn->close();
 <html>
 <head>
     <title>Edit User</title>
+    <link rel="stylesheet" href="CSS/style.css?v=4">
 </head>
 <body>
     <h2>Edit User</h2>

@@ -39,6 +39,7 @@ if (isset($_POST['update'])) {
 <html>
 <head>
     <title>Configure Global Thresholds</title>
+    <link rel="stylesheet" href="CSS/style.css?v=4">
 </head>
 <body>
     <h2>Global Threshold Settings</h2>
