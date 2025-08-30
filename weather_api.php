@@ -1,5 +1,5 @@
 <?php
-function getWeather($city = "Nairobi") {
+ function getWeather($city = "Nairobi"){
     $apiKey = "0cbe6dbb97ae2c61c6c962a4eae9afde"; // Replace with your valid OpenWeatherMap API key
     $url = "https://api.openweathermap.org/data/2.5/weather?q=" . urlencode($city) . "&appid=$apiKey&units=metric";
 
@@ -20,8 +20,8 @@ function getWeather($city = "Nairobi") {
     }
 
     // Check if rain is mentioned in weather description or present in data
-    $description = strtolower($data['weather'][0]['description']);
-    $willRain = strpos($description, 'rain') !== false || isset($data['rain']);
+    $desc  = strtolower($data['weather'][0]['description']);
+    $willRain = strpos($desc, 'rain') !== false || isset($data['rain']);
 
     return [
         'temperature' => $data['main']['temp'],

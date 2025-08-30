@@ -92,7 +92,7 @@ $conn->close();
             text-align: center;
         }
         .container {
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(0, 0, 0, 0.7);
             padding: 30px;
             border-radius: 15px;
             max-width: 600px;
@@ -145,6 +145,13 @@ $conn->close();
 
         <label for="temperature_max">Temperature Max (°C):</label>
         <input type="number" id="temperature_max" name="temperature_max" step="0.1" required>
+
+        <label for="light_min">Light Min (%):</label>
+        <input type="number" id="light_min" name="light_min" min="0" max="100" required>
+        <label for="light_max">Light Max (%):</label>
+        <input type="number" id="light_max" name="light_max" min="0" max="100" required>
+
+
 
         <button class="btn" type="submit">Save Thresholds</button>
     </form>

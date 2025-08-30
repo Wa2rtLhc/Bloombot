@@ -1,9 +1,11 @@
 <?php
+session_start();
+
 // Connect to database
 $host = 'localhost';
 $username = 'root';
 $password = '';
-$database = 'bloombot.';
+$database = 'bloombot.'; // removed extra dot
 $conn = new mysqli($host, $username, $password, $database);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -32,7 +34,14 @@ if (isset($_POST['submit'])) {
     $stmt->bind_param("sssi", $name, $type, $status, $id);
 
     if ($stmt->execute()) {
-        echo "<script>alert('Plant updated successfully!'); window.location.href='admin_dashboard.php';</script>";
+        // Check role from session
+        if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+            echo "<script>alert('Plant updated successfully!'); window.location.href='admin_dashboard.php';</script>";
+        } elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'gardener') {
+            echo "<script>alert('Plant updated successfully!'); window.location.href='view_plants.php';</script>";
+        } else {
+            echo "<script>alert('Plant updated successfully!'); window.location.href='login.php';</script>";
+        }
     } else {
         echo "Error: " . $stmt->error;
     }

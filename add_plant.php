@@ -71,6 +71,7 @@ $conn->close();
 <body>
     <div class="container">
         <h2>Add New Plant</h2>
+        <p>Please note:once you add your plants please set thresholds for them through the set thresholds button below</p>
         <form method="POST" action="add_plant.php">
             <label>Plant Name</label>
             <input type="text" name="name" required>
@@ -101,6 +102,8 @@ $conn->close();
 
             <button type="submit" name="submit">Add Plant</button>
         </form>
+        <a href="set_threshold.php" class="edit-button">Set Thresholds</a>
+    
     </div>
 </body>
 </html>

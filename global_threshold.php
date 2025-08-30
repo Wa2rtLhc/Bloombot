@@ -2,11 +2,6 @@
 include 'db_connect.php'; // Database connection
 session_start();
 
-// Security: Only admin should access this page
-if ($_SESSION['role'] !== 'admin') {
-    die("Access denied.");
-}
-
 // Fetch current global thresholds
 $query = "SELECT * FROM global_thresholds LIMIT 1";
 $result = mysqli_query($conn, $query);
@@ -31,7 +26,7 @@ if (isset($_POST['update'])) {
         light_max = $light_max
         WHERE id = {$current['id']}
     ");
-    echo "<script>alert('Global thresholds updated.'); window.location.href='configure_thresholds.php';</script>";
+    echo "<script>alert('Global thresholds updated.'); window.location.href='global_threshold.php';</script>";
 }
 ?>
 
@@ -55,5 +50,6 @@ if (isset($_POST['update'])) {
 
         <button type="submit" name="update">Update Thresholds</button>
     </form>
+    <a href="gardener_dashboard .php">← Back to Dashboard</a>
 </body>
 </html>

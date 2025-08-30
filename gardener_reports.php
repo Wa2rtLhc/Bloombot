@@ -144,7 +144,6 @@ if (isset($_GET['download']) && count($rows) > 0) {
             <th>Light (lux)</th>
             <th>Temp Range</th>
             <th>Moisture Range</th>
-            <th>Light Range</th>
             <th>Alert</th>
             <th>Alert Time</th>
         </tr>
@@ -156,10 +155,8 @@ if (isset($_GET['download']) && count($rows) > 0) {
             <td><?= htmlspecialchars($r['plant_name']) ?></td>
             <td><?= htmlspecialchars($r['temperature']) ?></td>
             <td><?= htmlspecialchars($r['moisture']) ?></td>
-            <td><?= htmlspecialchars($r['light_level']) ?></td>
             <td><?= "{$r['temperature_min']} - {$r['temperature_max']}" ?></td>
             <td><?= "{$r['moisture_min']} - {$r['moisture_max']}" ?></td>
-            <td><?= "{$r['light_min']} - {$r['light_max']}" ?></td>
             <td><?= htmlspecialchars($r['alert_message'] ?? '') ?></td>
             <td><?= htmlspecialchars($r['alert_time'] ?? '') ?></td>
         </tr>

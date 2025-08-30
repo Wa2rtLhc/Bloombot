@@ -3,6 +3,30 @@ include 'weather_api.php';
 session_start();
 include('db_connect.php');
 
+// Timeout duration in seconds (e.g., 15 minutes)
+$inactive = 900; 
+
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php?message=Please log in to continue");
+    exit();
+}
+
+// Check for session timeout
+if (isset($_SESSION['last_activity'])) {
+    $session_life = time() - $_SESSION['last_activity'];
+    if ($session_life > $inactive) {
+        // Destroy session and redirect
+        session_unset();
+        session_destroy();
+        header("Location: login.php?message=Session expired, please log in again");
+        exit();
+    }
+}
+
+// Update last activity timestamp
+$_SESSION['last_activity'] = time();
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gardener') {
     header("Location: login.php");
     exit();
@@ -12,7 +36,6 @@ $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];
 
 $weather = getWeather();
-
 // Fetch latest sensor data including plant name
 $sensor_query = mysqli_query($conn,
     "SELECT sd.*, p.name AS plant_name FROM sensor_data sd
@@ -52,12 +75,12 @@ while ($row = $result->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <title>Gardener Dashboard - Bloombot</title>
-    <meta http-equiv="refresh" content="300">
+    <meta http-equiv="refresh" content="200">
     <link rel="stylesheet" href="CSS/style.css?v=6">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body><div class="topnav">
-    <a href="gardener_dashboard.php">Dashboard</a>
+    <a href="gardener_dashboard .php">Dashboard</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact Us</a>
     <a href="profile.php">My Profile</a>
@@ -76,10 +99,11 @@ while ($row = $result->fetch_assoc()) {
         <a class="menu-button" href="view_alerts.php">🔔 View Alerts</a>
         <a class="menu-button" href="sensor_data.php">📊 View Sensor Data</a>
         <a class="menu-button" href="profile.php">👤 Profile</a>
+        <a class="menu-button" href="gardener_settings.html"> ⚙ Settings</a>
     </div><div class="content">
     <?php if ($weather): ?>
         <div class="weather-widget">
-            <h3>🌤 Current Weather in Nairobi</h3>
+           <h3>🌤 Current Weather in Nairobi</h3>
             <p>Weather in <?= ucfirst($weather['city']) ?>: <?= $weather['temperature'] ?>°C, <?= ucfirst($weather['description']) ?></p>
             <?php if ($weather['will_rain']): ?>
                 <p style="color: #2b6cb0; font-weight: bold;">☔ Rain is expected today – you may not need to water your plants.</p>
@@ -128,11 +152,11 @@ while ($row = $result->fetch_assoc()) {
             $sensor_sql = "SELECT * FROM sensor_data WHERE plant_id = $plant_id ORDER BY timestamp DESC LIMIT 1";
             $sensor_res = mysqli_query($conn, $sensor_sql);
             $sensor = mysqli_fetch_assoc($sensor_res);
-
             $threshold_sql = "SELECT * FROM thresholds WHERE plant_id = $plant_id LIMIT 1";
             $threshold_res = mysqli_query($conn, $threshold_sql);
             $plant_threshold = mysqli_fetch_assoc($threshold_res);
 
+           
             $status = "Healthy";
             if ($sensor) {
                 if ($plant_threshold) {

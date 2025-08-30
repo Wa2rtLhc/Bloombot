@@ -1,6 +1,30 @@
 <?php
 session_start();
 include('db_connect.php');
+// Timeout duration in seconds (e.g., 15 minutes)
+$inactive = 900; 
+
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php?message=Please log in to continue");
+    exit();
+}
+
+// Check for session timeout
+if (isset($_SESSION['last_activity'])) {
+    $session_life = time() - $_SESSION['last_activity'];
+    if ($session_life > $inactive) {
+        // Destroy session and redirect
+        session_unset();
+        session_destroy();
+        header("Location: login.php?message=Session expired, please log in again");
+        exit();
+    }
+}
+
+// Update last activity timestamp
+$_SESSION['last_activity'] = time();
+
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
@@ -77,6 +101,7 @@ while ($row = $result->fetch_assoc()) {
     <a href="about.html">About</a>
     <a href="contact.html">Contact Us</a>
     <a href="profile.php">My Profile</a>
+
     <div class="topnav-right">
         <a href="logout.php">Logout</a>
     </div>
@@ -89,6 +114,7 @@ while ($row = $result->fetch_assoc()) {
 <div class="main">
     <div class="sidebar">
         <h2>Menu</h2>
+        <a class="menu-button" href="add_user.php">➕ Add New User</a>
         <a class="menu-button" href="admin_dashboard.php">🏠 Dashboard</a>
         <a class="menu-button" href="global_threshold.php">⚙ Configure Global Thresholds</a>
         <a class="menu-button" href="view_alerts.php">🔔 View Alerts</a>

@@ -1,0 +1,50 @@
+MOCK SMS to : Test alert: Your Bloombot settings were saved.
+MOCK SMS to +2477777777: Test alert: Your Bloombot settings were saved.
+MOCK SMS to +2477777777: Test alert: Your Bloombot settings were saved.
+MOCK SMS to +2477777777: Test alert: Your Bloombot settings were saved.
+MOCK SMS to +2477777777: Temperature too low for Plant #9.
+MOCK SMS to +2477777777: Moisture too low for Plant #9.
+MOCK SMS to +2477777777: Light too high for Plant #9.
+MOCK SMS to +2477777777: Temperature too low for Plant #10.
+MOCK SMS to +2477777777: Moisture too high for Plant #10.
+MOCK SMS to +2477777777: Light too high for Plant #10.
+MOCK SMS to +2477777777: Temperature too low for Plant #11.
+MOCK SMS to +2477777777: Moisture too low for Plant #11.
+MOCK SMS to +2477777777: Light too high for Plant #11.
+MOCK SMS to +2477777777: Temperature too low for Plant #12.
+MOCK SMS to +2477777777: Moisture too high for Plant #12.
+MOCK SMS to +2477777777: Light too high for Plant #12.
+MOCK SMS to +2477777777: Temperature too low for Plant #13.
+MOCK SMS to +2477777777: Moisture too low for Plant #13.
+MOCK SMS to +2477777777: Light too high for Plant #13.
+MOCK SMS to +2477777777: Temperature too low for Plant #14.
+MOCK SMS to +2477777777: Light too high for Plant #14.
+MOCK SMS to +2477777777: Temperature too low for Plant #15.
+MOCK SMS to +2477777777: Moisture too low for Plant #15.
+MOCK SMS to +2477777777: Light too high for Plant #15.
+MOCK SMS to +2477777777: Temperature too low for Plant #16.
+MOCK SMS to +2477777777: Light too high for Plant #16.
+MOCK SMS to +2477777777: Temperature too low for Plant #17.
+MOCK SMS to +2477777777: Moisture too high for Plant #17.
+MOCK SMS to +2477777777: Light too high for Plant #17.
+MOCK SMS to +2477777777: Temperature too low for Plant #18.
+MOCK SMS to +2477777777: Light too high for Plant #18.
+MOCK SMS to +2477777777: Temperature too low for Plant #20.
+MOCK SMS to +2477777777: Moisture too low for Plant #20.
+MOCK SMS to +2477777777: Light too high for Plant #20.
+MOCK SMS to +2477777777: Temperature too low for Plant #21.
+MOCK SMS to +2477777777: Moisture too low for Plant #21.
+MOCK SMS to +2477777777: Light too high for Plant #21.
+MOCK SMS to +2477777777: Temperature too low for Plant #22.
+MOCK SMS to +2477777777: Moisture too low for Plant #22.
+MOCK SMS to +2477777777: Light too high for Plant #22.
+MOCK SMS to +2477777777: Temperature too low for Plant #23.
+MOCK SMS to +2477777777: Light too high for Plant #23.
+MOCK SMS to +2477777777: Moisture too low for Plant #14.
+MOCK SMS to +2477777777: Moisture too high for Plant #15.
+MOCK SMS to +2477777777: Moisture too high for Plant #16.
+MOCK SMS to +2477777777: Moisture too high for Plant #18.
+MOCK SMS to +2477777777: Moisture too low for Plant #23.
+MOCK SMS to +2477777777: Temperature too low for Plant #24.
+MOCK SMS to +2477777777: Moisture too low for Plant #24.
+MOCK SMS to +2477777777: Light too high for Plant #24.

@@ -73,7 +73,7 @@ if ($result->num_rows === 1) {
     </div>
     <a href="edit_profile.php" class="edit-button">Edit Profile</a>
     <div class="back-link">
-        <a href="dashboard.php">← Back to Dashboard</a>
+        <a href="gardener_dashboard .php">← Back to Dashboard</a>
     </div>
 </div>
 

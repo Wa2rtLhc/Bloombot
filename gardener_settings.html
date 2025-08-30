@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bloombot Gardener Settings</title>
+    <link rel="stylesheet" href="CSS/style.css?v=6">
+</head>
+<body>
+<div class="settings-container">
+    <h1>Gardener Settings</h1>
+
+    <?php if($message): ?>
+        <p style="color:green;"><?php echo $message; ?></p>
+    <?php endif; ?>
+
+    <form method="POST" action="gardener_settings.php">
+        <label>City for Weather:</label>
+        <input type="text" name="city" value="City you are in" required><br><br>
+
+        <label>Alert Type:</label>
+        <select name="alert_type">
+            <option value="popup" <?php if($settings['alert_type']=='popup') echo 'selected'; ?>>Popup</option>
+            <option value="email" <?php if($settings['alert_type']=='email') echo 'selected'; ?>>Email</option>
+             <option value="sms" <?php if($settings['alert_type']=='sms') echo 'selected'; ?>>SMS</option>
+
+        </select><br><br>
+
+        <label>Theme:</label>
+        <select name="theme">
+            <option value="light" <?php if($settings['theme']=='light') echo 'selected'; ?>>Light</option>
+            <option value="dark" <?php if($settings['theme']=='dark') echo 'selected'; ?>>Dark</option>
+        </select><br><br>
+
+        <label>Temperature Units:</label>
+        <select name="units">
+            <option value="C" <?php if($settings['units']=='C') echo 'selected'; ?>>Celsius</option>
+            <option value="F" <?php if($settings['units']=='F') echo 'selected'; ?>>Fahrenheit</option>
+        </select><br><br>
+
+        <button type="submit">Save Settings</button>
+    </form>
+</div>
+</body>
+</html>
